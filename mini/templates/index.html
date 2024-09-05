@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Detection Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .visualization {
+            display: none;
+        }
+        .cbutton button {
+            text-align: center;
+        }
+        #sample_data {
+            display: none;
+        }
+    </style>
+    <script>
+        function showVisualization(id) {
+            // Hide all visualizations
+            const visualizations = document.querySelectorAll('.visualization');
+            visualizations.forEach(visualization => {
+                visualization.style.display = 'none';
+            });
+            // Show the selected visualization
+            const selectedVisualization = document.getElementById(id);
+            selectedVisualization.style.display = 'block';
+        }
+
+        function clearVisualizations() {
+            // Hide all visualizations
+            const visualizations = document.querySelectorAll('.visualization');
+            visualizations.forEach(visualization => {
+                visualization.style.display = 'none';
+            });
+        }
+
+        function clearCM() {
+            // Clear specific visualizations (confusion matrix and heatmap)
+            const cmVisualizations = document.querySelectorAll('.cm');
+            cmVisualizations.forEach(cm => {
+                cm.style.display = 'none';
+            });
+        }
+
+        function toggleSampleData() {
+            const sampleData = document.getElementById('sample_data');
+            if (sampleData.style.display === 'none') {
+                sampleData.style.display = 'block';
+            } else {
+                sampleData.style.display = 'none';
+            }
+        }
+    
+
+    function backToHome() {
+        window.location.href = '/';
+    }
+    </script>
+</head>
+<body>
+    <div class="video-background">
+        <video autoplay loop muted>
+            <source src="static/background.mp4" type="video/mp4">
+        </video></div>
+    <div class="container">
+        <header>
+            <h1>Fraud Detection Dashboard</h1>
+        </header>
+
+        <!-- Button to Show Sample Data -->
+        <section id="sample_data_section">
+            <button onclick="toggleSampleData()">Show Sample Data</button>
+            <div id="sample_data">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            {% for col in columns %}
+                            <th>{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in table_data %}
+                        <tr>
+                            {% for col in columns %}
+                            <td>{{ row[col] }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="visualizations">
+            <h2>Visualizations</h2>
+            <div class="buttons">
+                <button onclick="showVisualization('histPlot')">Show Distribution of 'Step' Variable</button>
+                <button onclick="showVisualization('crmPlot')">Show Correlation Matrix</button>
+            </div>
+            <div id="histPlot" class="visualization">
+                <h3>Distribution of 'Step' Variable</h3>
+                <img src="{{ hist_plot }}" alt="Histogram Plot">
+            </div>
+            <div id="crmPlot" class="visualization">
+                <h3>Correlation Matrix</h3>
+                <img src="{{ crm_plot }}" alt="Correlation Matrix">
+            </div>
+        </section>
+        <div class="cbutton">
+            <button onclick="clearVisualizations()">Clear Visualizations</button>
+        </div>
+
+        <section id="models">
+            <h2>Model Training Results</h2>
+            <form action="/train" method="post">
+                <button type="submit">Train Models</button>
+            </form>
+            {% if results %}
+            <div class="results">
+                <table>
+                    <tr>
+                        <th>Model Name</th>
+                        <th>Train ROC AUC</th>
+                        <th>Validation ROC AUC</th>
+                    </tr>
+                    {% for model_name, result in results.items() %}
+                    <tr>
+                        <td>{{ model_name }}</td>
+                        <td>{{ result.train_roc_auc }}</td>
+                        <td>{{ result.val_roc_auc }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endif %}
+        </section>
+
+        <section id="confusion_matrix">
+            <h2>Confusion Matrix</h2>
+            <form action="/confusion_matrix" method="get">
+                <button type="submit">Generate Confusion Matrix</button>
+            </form>
+            {% if cm_path and heatmap_path %}
+            <div class="cm">
+                <h3>Confusion Matrix</h3>
+                <img src="{{ cm_path }}" alt="Confusion Matrix">
+            </div>
+            <div class="cm">
+                <h3>Heatmap for Confusion Matrix</h3>
+                <img src="{{ heatmap_path }}" alt="Heatmap">
+            </div>
+            <div class="buttons">
+                <button onclick="clearCM()">Clear</button>
+            </div>
+            {% endif %}
+        </section>
+        <div class="cbutton">
+            <button onclick="backToHome()">Back to Home</button>
+        </div>
+    </div>
+    
+</body>
+</html>
